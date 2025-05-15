@@ -724,8 +724,11 @@ local Themes = {
 	},
 }
 
+if _G.UILibrary and _G.UILibrary.Destroy then
+    _G.UILibrary:Destroy()
+end
 local Library = {
-	Version = "1.2",
+	Version = "v1.0.0",
 
 	OpenFrames = {},
 	Options = {},
@@ -745,9 +748,7 @@ local Library = {
 	MinimizeKey = Enum.KeyCode.LeftControl,
 }
 
-if _G.Library and typeof(_G.Library.Destroy) == "function" then
-    _G.Library:Destroy()
-end
+
 local function isMotor(value)
 	local motorType = tostring(value):match("^Motor%((.+)%)$")
 
@@ -6804,6 +6805,19 @@ local InterfaceManager = {} do
 		Library.MinimizeKeybind = MenuKeybind
 	end
 end
-_G.Library = library
+function library:Destroy()
+    for _, gui in ipairs(self._guiObjects) do
+        if gui and gui:IsA("Instance") then
+            gui:Destroy()
+        end
+    end
+    self._guiObjects = {}
+    if _G.UILibrary == self then
+        _G.UILibrary = nil
+    end
+end
+
+-- Register globally
+_G.UILibrary = library
 task.wait(0.1)
 return Library, SaveManager, InterfaceManager, Mobile
