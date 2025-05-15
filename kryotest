@@ -1,0 +1,104 @@
+local library = {}
+library.windows = {}
+
+local UIS = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+
+-- Destroy old UI
+local oldGui = game.CoreGui:FindFirstChild("MyUILibrary")
+if oldGui then oldGui:Destroy() end
+
+function library:CreateWindow(title)
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "MyUILibrary"
+    ScreenGui.ResetOnSpawn = false
+
+    -- Dual parenting logic:
+    local player = Players.LocalPlayer
+    if player and player:FindFirstChild("PlayerGui") then
+        ScreenGui.Parent = player.PlayerGui
+    else
+        ScreenGui.Parent = game.CoreGui
+    end
+
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(0, 350, 0, 400)
+    Frame.Position = UDim2.new(0.5, -175, 0.5, -200)
+    Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Frame.BorderSizePixel = 0
+    Frame.Active = true
+    Frame.Parent = ScreenGui
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, 0, 0, 50)
+    Title.BackgroundTransparency = 1
+    Title.Text = title or "Window"
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 20
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.Parent = Frame
+
+    local container = Instance.new("ScrollingFrame")
+    container.Size = UDim2.new(1, 0, 1, -50)
+    container.Position = UDim2.new(0, 0, 0, 50)
+    container.CanvasSize = UDim2.new(0, 0, 0, 0)
+    container.BackgroundTransparency = 1
+    container.ScrollBarThickness = 6
+    container.Parent = Frame
+
+    local layout = Instance.new("UIListLayout")
+    layout.Padding = UDim.new(0, 8)
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Parent = container
+
+    -- Update CanvasSize dynamically
+    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        container.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
+    end)
+
+    -- Dragging logic
+    local dragging, dragInput, dragStart, startPos
+
+    Frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = Frame.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    Frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+
+    UIS.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            Frame.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    -- Window API table
+    local window = {}
+    window.container = container
+    window.frame = Frame
+
+    table.insert(library.windows, window)
+
+    return window
+end
+
+return library
