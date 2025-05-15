@@ -723,9 +723,6 @@ local Themes = {
 		HoverChange = 0.04
 	},
 }
-if _G.FluentPlus and type(_G.FluentPlus.Destroy) == "function" then
-    _G.FluentPlus:Destroy()
-end
 
 local Library = {
 	Version = "1.2",
@@ -748,6 +745,9 @@ local Library = {
 	MinimizeKey = Enum.KeyCode.LeftControl,
 }
 
+if _G.Library and typeof(_G.Library.Destroy) == "function" then
+    _G.Library:Destroy()
+end
 local function isMotor(value)
 	local motorType = tostring(value):match("^Motor%((.+)%)$")
 
@@ -6804,39 +6804,6 @@ local InterfaceManager = {} do
 		Library.MinimizeKeybind = MenuKeybind
 	end
 end
-
-function Library:Destroy()
-    self.Unloaded = true
-
-    -- Destroy GUI objects
-    for _, gui in ipairs(self._guiObjects) do
-        if gui and gui.Parent then
-            gui:Destroy()
-        end
-    end
-    self._guiObjects = {}
-
-    -- Disconnect events
-    for _, conn in ipairs(self._connections) do
-        if conn and conn.Disconnect then
-            conn:Disconnect()
-        end
-    end
-    self._connections = {}
-
-    -- Clear references
-    self.Window = nil
-    self.WindowFrame = nil
-
-    -- Remove global ref
-    if _G.FluentPlus == self then
-        _G.FluentPlus = nil
-    end
-end
-
--- Store library globally so it can be found next time
-_G.FluentPlus = Library
-
--- Return Library if needed
+_G.Library = library
 task.wait(0.1)
 return Library, SaveManager, InterfaceManager, Mobile
