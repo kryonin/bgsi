@@ -13,7 +13,6 @@ function library:CreateWindow(title)
     ScreenGui.Name = "MyUILibrary"
     ScreenGui.ResetOnSpawn = false
 
-    -- Dual parenting logic:
     local player = Players.LocalPlayer
     if player and player:FindFirstChild("PlayerGui") then
         ScreenGui.Parent = player.PlayerGui
@@ -51,12 +50,10 @@ function library:CreateWindow(title)
     layout.SortOrder = Enum.SortOrder.LayoutOrder
     layout.Parent = container
 
-    -- Update CanvasSize dynamically
     layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         container.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
     end)
 
-    -- Dragging logic
     local dragging, dragInput, dragStart, startPos
 
     Frame.InputBegan:Connect(function(input)
@@ -91,13 +88,42 @@ function library:CreateWindow(title)
         end
     end)
 
-    -- Window API table
     local window = {}
     window.container = container
     window.frame = Frame
 
-    table.insert(library.windows, window)
+    -- Toggle method
+    function window:CreateToggle(name, callback)
+        local toggleBtn = Instance.new("TextButton")
+        toggleBtn.Size = UDim2.new(1, -10, 0, 30)
+        toggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        toggleBtn.TextColor3 = Color3.new(1, 1, 1)
+        toggleBtn.Text = "[ OFF ] " .. name
+        toggleBtn.AutoButtonColor = false
+        toggleBtn.Parent = self.container
 
+        local toggled = false
+
+        toggleBtn.MouseEnter:Connect(function()
+            toggleBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+        end)
+
+        toggleBtn.MouseLeave:Connect(function()
+            toggleBtn.BackgroundColor3 = toggled and Color3.fromRGB(80, 150, 80) or Color3.fromRGB(50, 50, 50)
+        end)
+
+        toggleBtn.MouseButton1Click:Connect(function()
+            toggled = not toggled
+            toggleBtn.Text = (toggled and "[ ON ] " or "[ OFF ] ") .. name
+            toggleBtn.BackgroundColor3 = toggled and Color3.fromRGB(80, 150, 80) or Color3.fromRGB(50, 50, 50)
+
+            if callback then
+                callback(toggled)
+            end
+        end)
+    end
+
+    table.insert(library.windows, window)
     return window
 end
 
