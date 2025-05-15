@@ -724,9 +724,6 @@ local Themes = {
 	},
 }
 
-if _G.UILibrary and _G.UILibrary.Destroy then
-    _G.UILibrary:Destroy()
-end
 local Library = {
 	Version = "v1.0.0",
 
@@ -6805,19 +6802,6 @@ local InterfaceManager = {} do
 		Library.MinimizeKeybind = MenuKeybind
 	end
 end
-function library:Destroy()
-    for _, gui in ipairs(self._guiObjects) do
-        if gui and gui:IsA("Instance") then
-            gui:Destroy()
-        end
-    end
-    self._guiObjects = {}
-    if _G.UILibrary == self then
-        _G.UILibrary = nil
-    end
-end
 
--- Register globally
-_G.UILibrary = library
 task.wait(0.1)
 return Library, SaveManager, InterfaceManager, Mobile
